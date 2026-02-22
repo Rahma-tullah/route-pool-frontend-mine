@@ -13,16 +13,33 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [vehicleType, setVehicleType] = useState("");
   const { login, signup } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setSubmitting(true);
+
+    let errorMsg: string | null = null;
+
     if (mode === "login") {
-      login(email, password, role);
+      errorMsg = await login(email, password, role);
     } else {
-      signup(name, email, password, role);
+      errorMsg = await signup(name, email, password, role, vehicleType);
     }
+
+    setSubmitting(false);
+
+    if (errorMsg) {
+      setError(errorMsg);
+      return;
+    }
+
+    // Success — redirect based on role
     navigate(role === "driver" ? "/driver" : "/");
   };
 
@@ -35,7 +52,7 @@ const Auth = () => {
             <Leaf className="h-6 w-6 text-primary-foreground" />
           </div>
         </div>
-        <h1 className="text-2xl font-extrabold text-primary-foreground tracking-tight">PairDrop</h1>
+        <h1 className="text-2xl font-extrabold text-primary-foreground tracking-tight">Route Pool</h1>
         <p className="text-primary-foreground/70 text-sm mt-1">Shared deliveries, lower costs</p>
       </div>
 
@@ -106,7 +123,7 @@ const Auth = () => {
                     {role === "driver" ? "Full Name" : "Business Name"}
                   </label>
                   <Input
-                    placeholder={role === "driver" ? "Chinedu Okafor" : "Mama Nkechi Stores"}
+                    placeholder={role === "driver" ? "Chinedu Okafor" : "Your Business Name"}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
@@ -151,12 +168,28 @@ const Auth = () => {
               {role === "driver" && mode === "signup" && (
                 <div>
                   <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Vehicle Type</label>
-                  <Input placeholder="e.g. Motorcycle, Van, Tricycle" className="h-11" />
+                  <Input
+                    placeholder="e.g. Motorcycle, Van, Tricycle"
+                    className="h-11"
+                    value={vehicleType}
+                    onChange={(e) => setVehicleType(e.target.value)}
+                  />
                 </div>
               )}
 
-              <Button type="submit" className="w-full h-11 gradient-primary text-primary-foreground font-semibold text-sm">
-                {mode === "login" ? "Sign In" : "Create Account"}
+              {/* Error message */}
+              {error && (
+                <div className="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  {error}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                disabled={submitting}
+                className="w-full h-11 gradient-primary text-primary-foreground font-semibold text-sm"
+              >
+                {submitting ? "Please wait..." : mode === "login" ? "Sign In" : "Create Account"}
               </Button>
             </form>
 
@@ -174,7 +207,7 @@ const Auth = () => {
         </Card>
 
         <p className="text-center text-[11px] text-muted-foreground mt-6 mb-8">
-          By continuing, you agree to PairDrop's Terms of Service and Privacy Policy
+          By continuing, you agree to Route Pool's Terms of Service and Privacy Policy
         </p>
       </div>
     </div>
