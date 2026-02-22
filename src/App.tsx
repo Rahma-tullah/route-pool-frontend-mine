@@ -17,17 +17,31 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Shows a blank screen while Supabase checks if user is logged in
+const LoadingScreen = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <p className="text-muted-foreground text-sm">Loading...</p>
+  </div>
+);
+
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
+  // Wait for Supabase session check to finish before deciding
+  if (loading) return <LoadingScreen />;
   if (!isAuthenticated) return <Navigate to="/auth" replace />;
+
   return <>{children}</>;
 };
 
 const AuthRoute = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, loading } = useAuth();
+
+  if (loading) return <LoadingScreen />;
   if (isAuthenticated) {
     return <Navigate to={user?.role === "driver" ? "/driver" : "/"} replace />;
   }
+
   return <Auth />;
 };
 
@@ -37,20 +51,25 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/auth" element={<AuthRoute />} />
-      
+
       {/* Driver routes */}
-      <Route path="/driver" element={
-        <ProtectedRoute>
-          {user?.role === "driver" ? <DriverDashboard /> : <Navigate to="/" replace />}
-        </ProtectedRoute>
-      } />
+      <Route
+        path="/driver"
+        element={
+          <ProtectedRoute>
+            {user?.role === "driver" ? <DriverDashboard /> : <Navigate to="/" replace />}
+          </ProtectedRoute>
+        }
+      />
 
       {/* Retailer routes */}
-      <Route element={
-        <ProtectedRoute>
-          {user?.role === "driver" ? <Navigate to="/driver" replace /> : <AppLayout />}
-        </ProtectedRoute>
-      }>
+      <Route
+        element={
+          <ProtectedRoute>
+            {user?.role === "driver" ? <Navigate to="/driver" replace /> : <AppLayout />}
+          </ProtectedRoute>
+        }
+      >
         <Route path="/" element={<Index />} />
         <Route path="/place-order" element={<PlaceOrder />} />
         <Route path="/track" element={<TrackOrder />} />

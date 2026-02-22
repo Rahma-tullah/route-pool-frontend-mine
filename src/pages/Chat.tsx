@@ -30,7 +30,7 @@ const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hi! I'm your PairDrop assistant 🤖 How can I help you today? You can ask me about deliveries, payments, or anything else!",
+      text: "Hi! I'm your Route Pool assistant 🤖 How can I help you today? You can ask me about deliveries, payments, or anything else!",
       sender: "bot",
     },
   ]);
@@ -54,7 +54,7 @@ const Chat = () => {
             <Bot className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-foreground">PairDrop Assistant</h1>
+            <h1 className="text-base font-bold text-foreground">Route Pool Assistant</h1>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <span className="h-1.5 w-1.5 rounded-full bg-success inline-block" />
               Always online
