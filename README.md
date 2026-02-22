@@ -1,73 +1,124 @@
-# Welcome to your Lovable project
+📦 Route Pool
 
-## Project info
+AI-powered shared delivery platform helping SMEs reduce costs and carbon emissions through smart route pooling.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Route Pool is a logistics web application that matches small and medium-sized businesses (SMEs) with nearby deliveries to reduce transportation costs and environmental impact.
 
-## How can I edit this code?
+🌍 Problem
 
-There are several ways of editing your application.
+In many cities, especially in high-density commercial areas:
 
-**Use Lovable**
+SMEs send individual deliveries to similar locations
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+Trucks run half empty
 
-Changes made via Lovable will be committed automatically to this repo.
+Fuel costs are high
 
-**Use your preferred IDE**
+CO₂ emissions increase unnecessarily
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Delivery costs are unpredictable
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Route Pool solves this by intelligently pairing deliveries heading in similar directions.
 
-Follow these steps:
+🚀 Solution
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Route Pool:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+📍 Matches deliveries within a geographic radius
 
-# Step 3: Install the necessary dependencies.
-npm i
+👥 Pairs SMEs with nearby orders
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+💰 Splits delivery costs fairly
 
-**Edit a file directly in GitHub**
+🌱 Tracks CO₂ emissions saved
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+🤖 Generates AI-powered eco encouragement
 
-**Use GitHub Codespaces**
+🔐 Uses OTP verification for secure delivery confirmation
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+🧠 Key Features
+1️⃣ Smart Delivery Pooling
 
-## What technologies are used for this project?
+Groups deliveries based on geographic proximity
 
-This project is built with:
+Displays pairing status in real time
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Shows how many businesses you are paired with
 
-## How can I deploy this project?
+2️⃣ Cost Sharing Engine
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Automatically calculates customer share
 
-## Can I connect a custom domain to my Lovable project?
+Transparent breakdown per delivery
 
-Yes, you can!
+Aggregates total savings on dashboard
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+3️⃣ Sustainability Tracking
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Tracks CO₂ saved per pooled delivery
+
+Displays cumulative environmental impact
+
+Personalized eco messages powered by AI
+
+4️⃣ AI Eco Motivation
+
+Uses Gemini API by Google
+Generates short, personalized sustainability messages for each user.
+
+Example:
+
+"You’ve prevented emissions equal to planting 3 trees!"
+
+5️⃣ Secure OTP Delivery Confirmation
+
+OTP generated at dispatch
+
+Verified at delivery point
+
+Prevents fraud and false confirmations
+
+6️⃣ Role-Based System
+
+Retailers (SMEs)
+
+Drivers
+
+Admin (future expansion)
+
+🛠 Tech Stack
+Frontend
+
+React (Vite)
+
+TypeScript
+
+Tailwind CSS
+
+React Router
+
+Lucide Icons
+
+Backend
+
+Supabase
+
+PostgreSQL database
+
+Authentication
+
+Row-Level Security
+
+Realtime subscriptions
+
+Storage
+
+Database
+
+PostgreSQL
+
+PostGIS (for geospatial calculations)
+
+AI Integration
+
+Gemini 2.0 Flash API
