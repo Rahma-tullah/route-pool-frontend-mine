@@ -23,7 +23,9 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    loadDeliveries();
+    if (user) {
+      loadDeliveries();
+    }
   }, [user]);
 
   const loadDeliveries = async () => {
@@ -137,7 +139,7 @@ const Dashboard = () => {
         )}
 
         {/* Create Form */}
-        {showForm && user?.role === "retailer" && (
+        {showForm && user?.user_type === "retailer" && (
           <Card className="mb-6">
             <CardContent className="p-6">
               <h2 className="text-lg font-bold mb-4">Create New Delivery</h2>
@@ -147,10 +149,7 @@ const Dashboard = () => {
                     placeholder="Customer Name"
                     value={formData.customer_name}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        customer_name: e.target.value,
-                      })
+                      setFormData({ ...formData, customer_name: e.target.value })
                     }
                     required
                   />
@@ -158,10 +157,7 @@ const Dashboard = () => {
                     placeholder="Phone"
                     value={formData.customer_phone}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        customer_phone: e.target.value,
-                      })
+                      setFormData({ ...formData, customer_phone: e.target.value })
                     }
                     required
                   />
@@ -203,10 +199,7 @@ const Dashboard = () => {
                   placeholder="Package Description"
                   value={formData.package_description}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      package_description: e.target.value,
-                    })
+                    setFormData({ ...formData, package_description: e.target.value })
                   }
                   required
                 />
@@ -231,7 +224,7 @@ const Dashboard = () => {
         )}
 
         {/* Action Button */}
-        {!showForm && user?.role === "retailer" && (
+        {!showForm && user?.user_type === "retailer" && (
           <Button
             onClick={() => setShowForm(true)}
             className="mb-6 bg-green-600 hover:bg-green-700">
@@ -243,7 +236,7 @@ const Dashboard = () => {
         {/* Deliveries List */}
         <div>
           <h2 className="text-xl font-bold text-gray-900 mb-4">
-            {user?.role === "retailer" ? "My Deliveries" : "My Batches"}
+            {user?.user_type === "retailer" ? "My Deliveries" : "My Batches"}
           </h2>
 
           {loading ? (
@@ -255,7 +248,7 @@ const Dashboard = () => {
               <CardContent className="p-8 text-center">
                 <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600">
-                  {user?.role === "retailer"
+                  {user?.user_type === "retailer"
                     ? "No deliveries yet. Create one to get started!"
                     : "No batches assigned yet"}
                 </p>

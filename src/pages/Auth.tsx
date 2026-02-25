@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth, UserRole } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +22,6 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   const { signup, sendOTP, verifyOTP } = useAuth();
-  const navigate = useNavigate();
 
   const handleSignInRole = (selectedRole: UserRole) => {
     setRole(selectedRole);
@@ -96,7 +94,8 @@ const Auth = () => {
       return;
     }
 
-    navigate(role === "rider" ? "/driver" : "/");
+    // ✅ No navigate() here — AuthRoute in App.tsx handles the redirect
+    // automatically once isAuthenticated becomes true
   };
 
   const handleResend = async (e: React.FormEvent) => {
@@ -254,7 +253,6 @@ const Auth = () => {
                   required
                   className="h-11"
                 />
-
                 <Input
                   type="email"
                   placeholder="Email"
@@ -263,7 +261,6 @@ const Auth = () => {
                   required
                   className="h-11"
                 />
-
                 <Input
                   type="tel"
                   placeholder="Phone (07012345678)"

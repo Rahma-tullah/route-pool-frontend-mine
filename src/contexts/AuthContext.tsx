@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 import { api } from "@/services/api";
 
 export type UserRole = "retailer" | "rider";
@@ -7,7 +13,7 @@ interface User {
   id: string;
   email: string;
   name: string;
-  role: UserRole;
+  user_type: "rider" | "retailer" | "driver";
 }
 
 interface AuthContextType {
@@ -33,10 +39,28 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+  // ================================
+  // Restore Session On App Load
+  // ================================
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("routepool_user");
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (e) {
+      localStorage.removeItem("routepool_user");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // ================================
+  // Signup
+  // ================================
   const signup = async (data: SignupData): Promise<string | null> => {
-    setLoading(true);
     try {
       const result = await api.signup(data);
       if (!result.success) {
@@ -45,13 +69,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return null;
     } catch (error: any) {
       return error.message || "Signup failed";
-    } finally {
-      setLoading(false);
     }
   };
 
+  // ================================
+  // Send OTP
+  // ================================
   const sendOTP = async (email: string): Promise<string | null> => {
-    setLoading(true);
     try {
       const result = await api.sendOTP(email);
       if (!result.success) {
@@ -60,16 +84,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return null;
     } catch (error: any) {
       return error.message || "Failed to send OTP";
-    } finally {
-      setLoading(false);
     }
   };
 
+  // ================================
+  // Verify OTP (Login)
+  // ================================
   const verifyOTP = async (
     email: string,
     otp: string,
   ): Promise<string | null> => {
-    setLoading(true);
     try {
       const result = await api.verifyOTP(email, otp);
       if (!result.success) {
@@ -77,32 +101,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (result.data?.user) {
-        setUser({
+        const loggedInUser: User = {
           id: result.data.user.id || "",
           email: result.data.user.email,
           name: result.data.user.name,
-          role:
-            result.data.user.user_type === "retailer" ? "retailer" : "rider",
-        });
+          user_type: result.data.user.user_type,
+        };
+
+        setUser(loggedInUser);
+        localStorage.setItem("routepool_user", JSON.stringify(loggedInUser));
       }
 
       return null;
     } catch (error: any) {
       return error.message || "Verification failed";
-    } finally {
-      setLoading(false);
     }
   };
 
+  // ================================
+  // Logout
+  // ================================
   const logout = async () => {
-    setLoading(true);
     try {
       await api.logout();
-      setUser(null);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Logout failed:", error);
     } finally {
-      setLoading(false);
+      setUser(null);
+      localStorage.removeItem("routepool_user");
     }
   };
 
@@ -116,7 +142,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         verifyOTP,
         logout,
         isAuthenticated: !!user,
-      }}>
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

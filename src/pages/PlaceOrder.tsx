@@ -44,7 +44,7 @@ const PlaceOrder = () => {
         setForm((prev) => ({ ...prev, pickup: data.shop_address }));
       }
     };
-    if (user.role === "retailer") fetchAddress();
+    if (user?.user_type === "retailer") fetchAddress();
   }, [user]);
 
   const handleSubmit = async () => {

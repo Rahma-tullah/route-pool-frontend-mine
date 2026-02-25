@@ -37,8 +37,8 @@ const Profile = () => {
 
   const fetchProfileDetails = async () => {
     // Fetch full profile details from the correct table based on role
-    const table = user?.role === "retailer" ? "retailers" : "riders";
-    const idCol = user?.role === "retailer" ? "retailer_id" : "rider_id";
+    const table = user?.user_type === "retailer" ? "retailers" : "riders";
+    const idCol = user?.user_type === "retailer" ? "retailer_id" : "rider_id";
 
     const { data: profileData } = await supabase
       .from(table)
@@ -95,7 +95,7 @@ const Profile = () => {
         <div>
           <h1 className="text-xl font-bold text-foreground">{user?.name || "Unknown"}</h1>
           <p className="text-sm text-muted-foreground">
-            {user?.role === "driver" ? "Driver" : "SME Owner"}
+            {user?.user_type === "driver" ? "Driver" : "SME Owner"}
           </p>
         </div>
       </div>
@@ -112,7 +112,7 @@ const Profile = () => {
           <Mail className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm text-foreground">{profile?.email || user?.email}</span>
         </div>
-        {user?.role === "retailer" && (
+        {user?.user_type === "retailer" && (
           <div className="flex items-center gap-3">
             <MapPin className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-foreground">
