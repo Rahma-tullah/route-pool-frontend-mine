@@ -13,6 +13,8 @@ import Payments from "./pages/Payments";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import DriverDashboard from "./pages/DriverDashboard";
+import DriverProfile from "./pages/DriverProfile";
+import DriverLayout from "./components/DriverLayout";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,13 +56,15 @@ const AppRoutes = () => {
 
       {/* Driver routes */}
       <Route
-        path="/driver"
         element={
           <ProtectedRoute>
-            {user?.role === "driver" ? <DriverDashboard /> : <Navigate to="/" replace />}
+            {user?.role === "driver" ? <DriverLayout /> : <Navigate to="/" replace />}
           </ProtectedRoute>
         }
-      />
+      >
+        <Route path="/driver" element={<DriverDashboard />} />
+        <Route path="/driver/profile" element={<DriverProfile />} />
+      </Route>
 
       {/* Retailer routes */}
       <Route
