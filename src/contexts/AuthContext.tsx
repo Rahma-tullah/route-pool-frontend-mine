@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { supabase } from "@/lib/supabase";
-import { Session } from "@supabase/supabase-js";
+import React, { createContext, useContext, useState, ReactNode } from "react";
+import { api } from "@/services/api";
 
-export type UserRole = "retailer" | "driver";
+export type UserRole = "retailer" | "rider";
 
 interface User {
   id: string;
@@ -13,142 +12,111 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
   loading: boolean;
-  login: (email: string, password: string, role: UserRole) => Promise<string | null>;
-  signup: (name: string, email: string, password: string, role: UserRole, vehicleType?: string) => Promise<string | null>;
+  signup: (data: SignupData) => Promise<string | null>;
+  sendOTP: (email: string) => Promise<string | null>;
+  verifyOTP: (email: string, otp: string) => Promise<string | null>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
+}
+
+interface SignupData {
+  name: string;
+  email: string;
+  phone: string;
+  user_type: "retailer" | "rider";
+  shop_name?: string;
+  vehicle_type?: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true); // true while we check existing session
+  const [loading, setLoading] = useState(false);
 
-  // On app load, check if user is already logged in
-  useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      if (session) await loadUserProfile(session.user.id);
-      setLoading(false);
-    });
-
-    // Listen for auth changes (login, logout, token refresh)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      if (session) {
-        await loadUserProfile(session.user.id);
-      } else {
-        setUser(null);
+  const signup = async (data: SignupData): Promise<string | null> => {
+    setLoading(true);
+    try {
+      const result = await api.signup(data);
+      if (!result.success) {
+        return result.error || "Signup failed";
       }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // Look up the user's profile from retailers or riders table
-  const loadUserProfile = async (authId: string) => {
-    // Check retailers first
-    const { data: retailer } = await supabase
-      .from("retailers")
-      .select("retailer_id, full_name, email")
-      .eq("auth_id", authId)
-      .single();
-
-    if (retailer) {
-      setUser({
-        id: retailer.retailer_id,
-        email: retailer.email,
-        name: retailer.full_name,
-        role: "retailer",
-      });
-      return;
-    }
-
-    // Check riders
-    const { data: rider } = await supabase
-      .from("riders")
-      .select("rider_id, full_name, email")
-      .eq("auth_id", authId)
-      .single();
-
-    if (rider) {
-      setUser({
-        id: rider.rider_id,
-        email: rider.email,
-        name: rider.full_name,
-        role: "driver",
-      });
+      return null;
+    } catch (error: any) {
+      return error.message || "Signup failed";
+    } finally {
+      setLoading(false);
     }
   };
 
-  const login = async (email: string, password: string, role: UserRole): Promise<string | null> => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return error.message;
-
-    // Verify the user actually belongs to the role they selected
-    const table = role === "retailer" ? "retailers" : "riders";
-    const idCol = role === "retailer" ? "retailer_id" : "rider_id";
-    const { data: profile } = await supabase
-      .from(table)
-      .select(idCol)
-      .eq("auth_id", data.user.id)
-      .single();
-
-    if (!profile) {
-      await supabase.auth.signOut();
-      return `No ${role} account found for this email. Please check your role or sign up.`;
+  const sendOTP = async (email: string): Promise<string | null> => {
+    setLoading(true);
+    try {
+      const result = await api.sendOTP(email);
+      if (!result.success) {
+        return result.error || "Failed to send OTP";
+      }
+      return null;
+    } catch (error: any) {
+      return error.message || "Failed to send OTP";
+    } finally {
+      setLoading(false);
     }
-
-    return null; // null = success
   };
 
-  const signup = async (
-    name: string,
+  const verifyOTP = async (
     email: string,
-    password: string,
-    role: UserRole,
-    vehicleType?: string
+    otp: string,
   ): Promise<string | null> => {
-    // Step 1: Create the auth account
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) return error.message;
-    if (!data.user) return "Signup failed, please try again.";
+    setLoading(true);
+    try {
+      const result = await api.verifyOTP(email, otp);
+      if (!result.success) {
+        return result.error || "Verification failed";
+      }
 
-    const authId = data.user.id;
+      if (result.data?.user) {
+        setUser({
+          id: result.data.user.id || "",
+          email: result.data.user.email,
+          name: result.data.user.name,
+          role:
+            result.data.user.user_type === "retailer" ? "retailer" : "rider",
+        });
+      }
 
-    // Step 2: Insert into the correct table based on role
-    if (role === "retailer") {
-      const { error: insertError } = await supabase.from("retailers").insert({
-        auth_id: authId,
-        full_name: name,
-        email: email,
-      });
-      if (insertError) return insertError.message;
-    } else {
-      const { error: insertError } = await supabase.from("riders").insert({
-        auth_id: authId,
-        full_name: name,
-        email: email,
-        vehicle_type: vehicleType || null,
-      });
-      if (insertError) return insertError.message;
+      return null;
+    } catch (error: any) {
+      return error.message || "Verification failed";
+    } finally {
+      setLoading(false);
     }
-
-    return null; // null = success
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
+    setLoading(true);
+    try {
+      await api.logout();
+      setUser(null);
+    } catch (error: any) {
+      console.error("Logout failed:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, login, signup, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        signup,
+        sendOTP,
+        verifyOTP,
+        logout,
+        isAuthenticated: !!user,
+      }}>
       {children}
     </AuthContext.Provider>
   );

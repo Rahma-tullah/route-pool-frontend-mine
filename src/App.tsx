@@ -4,89 +4,56 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import AppLayout from "./components/AppLayout";
-import Index from "./pages/Index";
-import PlaceOrder from "./pages/PlaceOrder";
-import TrackOrder from "./pages/TrackOrder";
-import Chat from "./pages/Chat";
-import Payments from "./pages/Payments";
-import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
-import DriverDashboard from "./pages/DriverDashboard";
-import DriverProfile from "./pages/DriverProfile";
-import DriverLayout from "./components/DriverLayout";
-import NotFound from "./pages/NotFound";
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
-// Shows a blank screen while Supabase checks if user is logged in
+// Loading screen
 const LoadingScreen = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <p className="text-muted-foreground text-sm">Loading...</p>
+  <div className="flex items-center justify-center min-h-screen bg-gray-50">
+    <p className="text-gray-600">Loading...</p>
   </div>
 );
 
+// Protected route
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
 
-  // Wait for Supabase session check to finish before deciding
   if (loading) return <LoadingScreen />;
   if (!isAuthenticated) return <Navigate to="/auth" replace />;
 
   return <>{children}</>;
 };
 
+// Auth route
 const AuthRoute = () => {
-  const { isAuthenticated, user, loading } = useAuth();
+  const { loading } = useAuth();
 
   if (loading) return <LoadingScreen />;
-  if (isAuthenticated) {
-    return <Navigate to={user?.role === "driver" ? "/driver" : "/"} replace />;
-  }
 
   return <Auth />;
 };
 
+// Routes
 const AppRoutes = () => {
-  const { user } = useAuth();
-
   return (
     <Routes>
       <Route path="/auth" element={<AuthRoute />} />
-
-      {/* Driver routes */}
       <Route
+        path="/"
         element={
           <ProtectedRoute>
-            {user?.role === "driver" ? <DriverLayout /> : <Navigate to="/" replace />}
+            <Dashboard />
           </ProtectedRoute>
         }
-      >
-        <Route path="/driver" element={<DriverDashboard />} />
-        <Route path="/driver/profile" element={<DriverProfile />} />
-      </Route>
-
-      {/* Retailer routes */}
-      <Route
-        element={
-          <ProtectedRoute>
-            {user?.role === "driver" ? <Navigate to="/driver" replace /> : <AppLayout />}
-          </ProtectedRoute>
-        }
-      >
-        <Route path="/" element={<Index />} />
-        <Route path="/place-order" element={<PlaceOrder />} />
-        <Route path="/track" element={<TrackOrder />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/payments" element={<Payments />} />
-        <Route path="/profile" element={<Profile />} />
-      </Route>
-
-      <Route path="*" element={<NotFound />} />
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };
 
+// Main App
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
