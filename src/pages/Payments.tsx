@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CreditCard, CheckCircle2, Copy, Shield, ChevronRight, Wallet, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
 
 const paymentHistory = [
   { id: "PAY-001", amount: "₦1,200", date: "Feb 10", status: "Completed", order: "ORD-2843" },
@@ -10,6 +11,7 @@ const paymentHistory = [
 ];
 
 const Payments = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"pay" | "history">("pay");
   const [payStep, setPayStep] = useState<"details" | "otp" | "done">("details");
   const [otp, setOtp] = useState("");
@@ -119,12 +121,12 @@ const Payments = () => {
             </p>
           </div>
 
-          <Button
-            onClick={() => setPayStep("done")}
-            className="w-full h-12 rounded-xl gradient-primary text-primary-foreground font-semibold"
-          >
-            Track My Delivery
-          </Button>
+       <Button
+  onClick={() => navigate("/track")}
+  className="w-full h-12 rounded-xl gradient-primary text-primary-foreground font-semibold"
+>
+  Track My Delivery
+</Button>
         </div>
       )}
 

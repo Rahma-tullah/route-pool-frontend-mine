@@ -35,13 +35,14 @@ const PlaceOrder = () => {
   useEffect(() => {
     if (!user) return;
     const fetchAddress = async () => {
-      const { data } = await supabase
-        .from("retailers")
-        .select("shop_address")
-        .eq("retailer_id", user.id)
+      const { data, error: fetchError } = await supabase
+        .from("RETAILERS")
+        .select('"Shop_address"')
+        .eq("Retailer_ID", user.id)
         .single();
-      if (data?.shop_address) {
-        setForm((prev) => ({ ...prev, pickup: data.shop_address }));
+
+      if (!fetchError && data?.Shop_address) {
+        setForm((prev) => ({ ...prev, pickup: data.Shop_address }));
       }
     };
     if (user?.user_type === "retailer") fetchAddress();
@@ -52,35 +53,51 @@ const PlaceOrder = () => {
     setError("");
 
     try {
-      // Step 1: Look for an open batch to pair with (status = 'open')
-      const { data: openBatches } = await supabase
-        .from("batches")
-        .select("batch_id, total_deliveries")
-        .eq("status", "open")
-        .lt("total_deliveries", 4) // max 4 per batch
-        .order("created_date", { ascending: true })
+      // Step 1: Look for an open batch to pair with
+      const { data: openBatches, error: batchFetchError } = await supabase
+        .from("BATCHES")
+        .select('"Batch_ID", "Total_deliveries"')
+        .eq("Status", "open")
+        .lt("Total_deliveries", 4)
+        .order("Created_date", { ascending: true })
         .limit(1);
+
+      if (batchFetchError) {
+        setError("Failed to find delivery matches. Please try again.");
+        setLoading(false);
+        return;
+      }
 
       let batchId: string;
       let splitCount: number;
 
       if (openBatches && openBatches.length > 0) {
         // Pair with existing batch
-        batchId = openBatches[0].batch_id;
-        splitCount = openBatches[0].total_deliveries + 1;
+        batchId = openBatches[0].Batch_ID;
+        splitCount = openBatches[0].Total_deliveries + 1;
 
         await supabase
-          .from("batches")
-          .update({ total_deliveries: splitCount, updated_at: new Date().toISOString() })
-          .eq("batch_id", batchId);
+          .from("BATCHES")
+          .update({
+            Total_deliveries: splitCount,
+            Updated_at: new Date().toISOString(),
+          })
+          .eq("Batch_ID", batchId);
       } else {
         // Create a new batch
-        const { data: newBatch } = await supabase
-          .from("batches")
-          .insert({ status: "open", total_deliveries: 1 })
-          .select("batch_id")
+        const { data: newBatch, error: newBatchError } = await supabase
+          .from("BATCHES")
+          .insert({ Status: "open", Total_deliveries: 1 })
+          .select('"Batch_ID"')
           .single();
-        batchId = newBatch!.batch_id;
+
+        if (newBatchError || !newBatch) {
+          setError("Failed to create a new batch. Please try again.");
+          setLoading(false);
+          return;
+        }
+
+        batchId = newBatch.Batch_ID;
         splitCount = 1;
       }
 
@@ -89,19 +106,18 @@ const PlaceOrder = () => {
       const yourShare = Math.round(totalFee / splitCount);
       const co2Saved = parseFloat((2.3 / splitCount).toFixed(1));
 
-      // Step 3: Save the delivery to Supabase
-      const { data: delivery, error: insertError } = await supabase
-        .from("deliveries")
+      // Step 3: Save the delivery to DELIVERIES table
+      // Only inserting columns that exist in the schema
+      const { data: deliveryData, error: insertError } = await supabase
+        .from("DELIVERIES")
         .insert({
-          retailer_id: user!.id,
-          batch_id: batchId,
-          customer_name: user!.name,
-          package_description: form.description,
-          status: splitCount > 1 ? "Paired" : "Pending",
-          co2_saved: co2Saved,
-          customer_share: yourShare,
+          Retailer_ID: user!.id,
+          Batch_ID: batchId,
+          Customer_name: user!.name,
+          Package_description: form.description,
+          Status: splitCount > 1 ? "Paired" : "Pending",
         })
-        .select("delivery_id")
+        .select('"Delivery_ID"')
         .single();
 
       if (insertError) {
@@ -116,7 +132,7 @@ const PlaceOrder = () => {
         yourShare,
         co2Saved,
         batchId,
-        deliveryId: delivery!.delivery_id,
+        deliveryId: deliveryData!.Delivery_ID,
       });
 
       setLoading(false);
@@ -287,7 +303,9 @@ const PlaceOrder = () => {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Split between</span>
-                <span className="font-medium text-foreground">{match.splitCount} {match.splitCount === 1 ? "SME" : "SMEs"}</span>
+                <span className="font-medium text-foreground">
+                  {match.splitCount} {match.splitCount === 1 ? "SME" : "SMEs"}
+                </span>
               </div>
               <div className="flex justify-between text-sm border-t border-border pt-3">
                 <span className="font-semibold text-foreground">Your share</span>
